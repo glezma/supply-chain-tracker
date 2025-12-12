@@ -168,14 +168,14 @@
 
 ## Phase 2: Frontend Setup
 
-- [ ] 8. Initialize Next.js project
+- [x] 8. Initialize Next.js project
   - Run `npx create-next-app@latest web --typescript`
   - Configure with App Router, TypeScript, Tailwind CSS, ESLint
   - Install dependencies: ethers, @radix-ui components
   - Verify project builds with `npm run build`
   - _Requirements: 16_
 
-- [ ] 9. Set up project structure
+- [x] 9. Set up project structure
   - Create directory structure:
     - `src/app/` (pages)
     - `src/components/` (React components)
@@ -188,13 +188,13 @@
   - Install Shadcn/ui components (button, card, input, label, select, table)
   - _Requirements: 16_
 
-- [ ] 10. Configure contract integration
-  - [ ] 10.1 Copy contract ABI
+- [x] 10. Configure contract integration
+  - [x] 10.1 Copy contract ABI
     - Copy ABI from `sc/out/SupplyChain.sol/SupplyChain.json`
     - Save to `web/src/contracts/SupplyChain.json`
     - _Requirements: 16_
   
-  - [ ] 10.2 Create contract configuration
+  - [x] 10.2 Create contract configuration
     - Create `web/src/contracts/config.ts`
     - Export CONTRACT_CONFIG with address, ABI, adminAddress
     - Export NETWORK_CONFIG with Chain ID 31337, RPC URL
@@ -202,103 +202,75 @@
 
 ## Phase 3: Web3 Integration Layer
 
-- [ ] 11. Implement Web3Service
-  - [ ] 11.1 Create Web3Service class structure
-    - Create `web/src/lib/web3.ts`
-    - Define Web3Service class
-    - Add private properties: provider, contract
-    - _Requirements: 10_
-  
-  - [ ] 11.2 Implement connection methods
-    - connectWallet() - Request MetaMask connection
-    - disconnectWallet() - Clear connection
-    - getConnectedAddress() - Get current address
-    - switchNetwork() - Switch to Anvil network
-    - _Requirements: 10_
-  
-  - [ ] 11.3 Implement user management methods
-    - requestUserRole(role) - Call smart contract function
-    - changeStatusUser(address, status) - Admin only
-    - getUserInfo(address) - Get user details
-    - isAdmin(address) - Check if admin
-    - _Requirements: 1, 2_
-  
-  - [ ] 11.4 Implement token management methods
-    - createToken(name, supply, features, parentId) - Create token
-    - getToken(tokenId) - Get token details
-    - getTokenBalance(tokenId, address) - Get balance
-    - getUserTokens(address) - Get user's token IDs
-    - _Requirements: 3, 4, 8_
-  
-  - [ ] 11.5 Implement transfer management methods
-    - transfer(to, tokenId, amount) - Initiate transfer
-    - acceptTransfer(transferId) - Accept transfer
-    - rejectTransfer(transferId) - Reject transfer
-    - getTransfer(transferId) - Get transfer details
-    - getUserTransfers(address) - Get user's transfer IDs
-    - _Requirements: 5, 6, 7, 9_
-  
-  - [ ] 11.6 Implement event listeners
-    - onTokenCreated(callback) - Listen for TokenCreated events
-    - onTransferRequested(callback) - Listen for TransferRequested events
-    - onUserStatusChanged(callback) - Listen for UserStatusChanged events
-    - _Requirements: 10_
-  
-  - [ ] 11.7 Add error handling
-    - Handle MetaMask errors (user rejection, wrong network)
-    - Handle contract errors (revert reasons)
-    - Handle network errors (timeout, connection failed)
-    - Parse and format error messages
-    - _Requirements: 13_
-
-- [ ] 12. Implement Web3Context
-  - [ ] 12.1 Create context structure
+- [x] 11. Implement Web3Context
+  - [x] 11.1 Create context structure
     - Create `web/src/contexts/Web3Context.tsx`
     - Define Web3ContextType interface
     - Create Web3Context with createContext
     - _Requirements: 10_
   
-  - [ ] 12.2 Implement Web3Provider component
-    - Initialize state: isConnected, address, user, contract
-    - Implement connect() function
-    - Implement disconnect() function
-    - Implement refreshUserInfo() function
+  - [x] 11.2 Implement Web3Provider component
+    - Initialize state: isConnected, address, provider, signer, contract
+    - Implement connectWallet() function
+    - Implement disconnectWallet() function
     - Handle loading and error states
     - _Requirements: 10_
   
-  - [ ] 12.3 Implement localStorage persistence
-    - Save connected address to localStorage on connect
-    - Load address from localStorage on mount
-    - Auto-reconnect if address exists
-    - Clear localStorage on disconnect
-    - _Requirements: 10_
-  
-  - [ ] 12.4 Implement MetaMask event listeners
+  - [x] 11.3 Implement MetaMask event listeners
     - Listen for accountsChanged event
     - Listen for chainChanged event
     - Update state when events fire
-    - Validate Chain ID is 31337
     - _Requirements: 10_
   
-  - [ ] 12.5 Create useWeb3 hook
+  - [x] 11.4 Create useWeb3 hook
     - Export useWeb3() hook to access context
     - Throw error if used outside provider
     - _Requirements: 10_
 
-- [ ] 13. Implement custom hooks
-  - [ ] 13.1 Create useWallet hook
-    - Create `web/src/hooks/useWallet.ts`
-    - Export connect, disconnect, address, isConnected
+- [x] 12. Implement useContract hook
+  - [x] 12.1 Create hook structure
+    - Create `web/src/hooks/useContract.ts`
+    - Use Web3Context for contract access
+    - Manage loading and error states
     - _Requirements: 10_
   
-  - [ ] 13.2 Create useTokens hook
-    - Create `web/src/hooks/useTokens.ts`
-    - Implement fetchTokens() - Get user's tokens with balances
-    - Implement createToken() - Create new token
-    - Manage loading and error states
+  - [x] 12.2 Implement user management methods
+    - requestUserRole(role) - Call smart contract function
+    - changeStatusUser(address, status) - Admin only
+    - getUserInfo(address) - Get user details
+    - _Requirements: 1, 2_
+  
+  - [x] 12.3 Implement token management methods
+    - createToken(name, quantity) - Create token
+    - getToken(tokenId) - Get token details
+    - getUserTokens(address) - Get user's token IDs
     - _Requirements: 3, 4, 8_
   
-  - [ ] 13.3 Create useTransfers hook
+  - [x] 12.4 Implement transfer management methods
+    - transfer(tokenId, to, quantity) - Initiate transfer
+    - acceptTransfer(transferId) - Accept transfer
+    - rejectTransfer(transferId) - Reject transfer
+    - getTransfer(transferId) - Get transfer details
+    - getUserTransfers(address) - Get user's transfer IDs
+    - _Requirements: 5, 6, 7, 9_
+
+- [x] 13. Create TypeScript types
+  - [x] 13.1 Create types file
+    - Create `web/src/lib/types.ts`
+    - Define UserRole enum
+    - Define UserStatus enum
+    - Define TransferStatus enum
+    - Define User interface
+    - Define Token interface
+    - Define Transfer interface
+    - _Requirements: 1, 3, 5_
+  
+  - [x] 13.2 Create ethereum type declaration
+    - Create `web/src/types/ethereum.d.ts`
+    - Declare Window.ethereum interface
+    - _Requirements: 10_
+  
+  - [x] 13.3 Create useTransfers hook
     - Create `web/src/hooks/useTransfers.ts`
     - Implement fetchTransfers() - Get user's transfers
     - Implement acceptTransfer() - Accept pending transfer
@@ -306,7 +278,7 @@
     - Manage loading and error states
     - _Requirements: 5, 6, 7, 9_
   
-  - [ ] 13.4 Create useAdmin hook
+  - [x] 13.4 Create useAdmin hook
     - Create `web/src/hooks/useAdmin.ts`
     - Implement fetchUsers() - Get all users
     - Implement approveUser() - Approve pending user
@@ -316,13 +288,13 @@
 
 ## Phase 4: UI Components
 
-- [ ] 14. Create base UI components
-  - [ ] 14.1 Install Shadcn/ui components
+- [x] 14. Create base UI components
+  - [x] 14.1 Install Shadcn/ui components
     - Install button, card, input, label, select, table components
     - Configure components in `components/ui/`
     - _Requirements: 13_
   
-  - [ ] 14.2 Create Header component
+  - [x] 14.2 Create Header component
     - Create `web/src/components/Header.tsx`
     - Display logo and app name
     - Show navigation links (role-based)
@@ -330,20 +302,20 @@
     - Add disconnect button
     - _Requirements: 11_
   
-  - [ ] 14.3 Create TokenCard component
+  - [x] 14.3 Create TokenCard component
     - Create `web/src/components/TokenCard.tsx`
     - Display token name, balance, creation date
     - Link to token details page
     - _Requirements: 8, 11_
   
-  - [ ] 14.4 Create TransferList component
+  - [x] 14.4 Create TransferList component
     - Create `web/src/components/TransferList.tsx`
     - Display list of transfers with status indicators
     - Show sender, recipient, token, amount, date
     - Add Accept/Reject buttons for pending transfers
     - _Requirements: 9, 11_
   
-  - [ ] 14.5 Create UserTable component
+  - [x] 14.5 Create UserTable component
     - Create `web/src/components/UserTable.tsx`
     - Display users in table format
     - Show address, role, status
@@ -352,7 +324,7 @@
 
 ## Phase 5: Page Implementation
 
-- [ ] 15. Implement landing page
+- [x] 15. Implement landing page
   - Create `web/src/app/page.tsx`
   - Show different UI based on connection status:
     - Not connected: "Connect MetaMask" button
@@ -362,7 +334,7 @@
   - Handle form submission for registration
   - _Requirements: 1, 11_
 
-- [ ] 16. Implement dashboard page
+- [x] 16. Implement dashboard page
   - Create `web/src/app/dashboard/page.tsx`
   - Fetch user info and display role
   - Show role-specific statistics:
@@ -374,15 +346,15 @@
   - Add quick action buttons
   - _Requirements: 11_
 
-- [ ] 17. Implement token pages
-  - [ ] 17.1 Create token list page
+- [x] 17. Implement token pages
+  - [x] 17.1 Create token list page
     - Create `web/src/app/tokens/page.tsx`
     - Fetch and display user's tokens
     - Show TokenCard for each token
     - Add "Create Token" button
     - _Requirements: 8, 11_
   
-  - [ ] 17.2 Create token creation page
+  - [x] 17.2 Create token creation page
     - Create `web/src/app/tokens/create/page.tsx`
     - Form with fields: name, totalSupply, features (JSON)
     - If Factory/Retailer: add parent token selector
@@ -391,7 +363,7 @@
     - Show success/error messages
     - _Requirements: 3, 4, 11_
   
-  - [ ] 17.3 Create token details page
+  - [x] 17.3 Create token details page
     - Create `web/src/app/tokens/[id]/page.tsx`
     - Use `use(params)` to get token ID
     - Fetch and display complete token information
@@ -400,7 +372,7 @@
     - Add "Transfer" button
     - _Requirements: 8, 9, 11, 17_
   
-  - [ ] 17.4 Create token transfer page
+  - [x] 17.4 Create token transfer page
     - Create `web/src/app/tokens/[id]/transfer/page.tsx`
     - Form with recipient address and amount
     - Validate recipient role based on sender role
@@ -417,7 +389,7 @@
   - Filter by status
   - _Requirements: 6, 7, 9, 11_
 
-- [ ] 19. Implement admin pages
+- [x] 19. Implement admin pages
   - [ ] 19.1 Create admin dashboard
     - Create `web/src/app/admin/page.tsx`
     - Check if user is admin, redirect if not
@@ -425,7 +397,7 @@
     - Link to user management page
     - _Requirements: 12_
   
-  - [ ] 19.2 Create user management page
+  - [x] 19.2 Create user management page
     - Create `web/src/app/admin/users/page.tsx`
     - Check if user is admin, redirect if not
     - Fetch and display all users
@@ -434,14 +406,14 @@
     - Handle approve/reject actions
     - _Requirements: 2, 12_
 
-- [ ] 20. Implement profile page
+- [x] 20. Implement profile page
   - Create `web/src/app/profile/page.tsx`
   - Display user information (address, role, status)
   - Show token portfolio
   - Display transfer history
   - _Requirements: 11_
 
-- [ ] 21. Create root layout
+- [x] 21. Create root layout
   - Create `web/src/app/layout.tsx`
   - Wrap app with Web3Provider
   - Include Header component
