@@ -97,7 +97,7 @@ export default function Home() {
             </Button>
 
             <p className="mt-6 text-xs text-gray-400">
-              Please ensure you are on the Anvil local network
+
             </p>
           </CardContent>
         </Card>
