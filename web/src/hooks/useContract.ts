@@ -132,6 +132,16 @@ export function useContract() {
     }
   };
 
+  const getTokenBalance = async (tokenId: bigint, userAddress: string) => {
+    if (!contract) throw new Error('Contract not initialized');
+    try {
+      return await contract.getTokenBalance(tokenId, userAddress);
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   const getTransfer = async (transferId: bigint) => {
     if (!contract) throw new Error('Contract not initialized');
     try {
@@ -164,6 +174,60 @@ export function useContract() {
     }
   };
 
+  const getTokenTransfers = async (tokenId: bigint) => {
+    if (!contract) throw new Error('Contract not initialized');
+    try {
+      const count = await contract.nextTransferId();
+      const transfers = [];
+
+      for (let i = 0; i < count; i++) {
+        const t = await contract.transfers(i);
+        if (t.tokenId === tokenId) {
+          transfers.push({
+            id: t.id,
+            from: t.from,
+            to: t.to,
+            tokenId: t.tokenId,
+            timestamp: t.dateCreated, // Map dateCreated to timestamp
+            quantity: t.amount,       // Map amount to quantity
+            status: Number(t.status)
+          });
+        }
+      }
+      return transfers.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+    } catch (err: any) {
+      console.error('Error fetching token transfers:', err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const getAllUsers = async () => {
+    if (!contract) throw new Error('Contract not initialized');
+    try {
+      // Get total user count
+      const count = await contract.nextUserId();
+      const users = [];
+
+      // Iterate and fetch each user
+      for (let i = 0; i < count; i++) {
+        const user = await contract.users(i);
+        // Normalize user data strcuture
+        users.push({
+          id: user.id,
+          userAddress: user.userAddress,
+          role: user.role,
+          status: Number(user.status)
+        });
+      }
+      return users;
+    } catch (err: any) {
+      console.error('Error fetching all users:', err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
   return {
     loading,
     error,
@@ -175,8 +239,11 @@ export function useContract() {
     rejectTransfer,
     getUserInfo,
     getToken,
+    getTokenBalance,
     getTransfer,
     getUserTokens,
     getUserTransfers,
+    getTokenTransfers,
+    getAllUsers,
   };
 }

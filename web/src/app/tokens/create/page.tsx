@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Toast } from '@/components/ui/toast';
 import { useToast } from '@/hooks/useToast';
+import { ROLE_CONFIG } from '@/lib/roleConfig';
 
 export default function CreateTokenPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function CreateTokenPage() {
   const { toast, showToast, hideToast } = useToast();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
+  const [features, setFeatures] = useState('');
   const [loading, setLoading] = useState(false);
   const [userRole, setUserRole] = useState('');
 
@@ -41,9 +43,9 @@ export default function CreateTokenPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name || !quantity) {
-      showToast('Please fill all fields', 'error');
+      showToast('Please fill all required fields', 'error');
       return;
     }
 
@@ -53,10 +55,20 @@ export default function CreateTokenPage() {
       return;
     }
 
+    // Validate JSON if provided
+    if (features.trim()) {
+      try {
+        JSON.parse(features);
+      } catch (e) {
+        showToast('Invalid JSON format in Features', 'error');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
-      console.log('[CreateToken] Creating token:', { name, quantity: qty });
-      await createToken(name, qty);
+      console.log('[CreateToken] Creating token:', { name, quantity: qty, features });
+      await createToken(name, qty, features);
       showToast('Token created successfully!', 'success');
       setTimeout(() => router.push('/tokens'), 1000);
     } catch (error: any) {
@@ -70,56 +82,122 @@ export default function CreateTokenPage() {
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-2xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create New Token</CardTitle>
-            <p className="text-sm text-gray-500 mt-2">Role: {userRole}</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl shadow-xl">
+          <CardContent className="p-8">
+            {/* Header */}
+            <div className="flex items-start gap-4 mb-8">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
               <div>
-                <Label htmlFor="name">Token Name</Label>
+                <h1 className="text-2xl font-bold text-gray-900">Create Token</h1>
+                <p className="text-gray-500">Create a new token for your role as {userRole}</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Token Name */}
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                  Token Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., Raw Cotton, T-Shirt"
-                  className="mt-2"
+                  placeholder="Enter token name (e.g., Premium Coffee Beans)"
+                  className="w-full"
                 />
               </div>
 
-              <div>
-                <Label htmlFor="quantity">Total Supply</Label>
+              {/* Total Supply */}
+              <div className="space-y-2">
+                <Label htmlFor="quantity" className="text-sm font-medium text-gray-700">
+                  Total Supply <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="quantity"
                   type="number"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="e.g., 1000"
-                  className="mt-2"
+                  placeholder="Enter total supply (e.g., 1000)"
+                  className="w-full"
                 />
               </div>
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={loading} className="flex-1">
-                  {loading ? 'Creating...' : 'Create Token'}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+              {/* Features JSON */}
+              <div className="space-y-2">
+                <Label htmlFor="features" className="text-sm font-medium text-gray-700">
+                  Features (JSON)
+                </Label>
+                <textarea
+                  id="features"
+                  value={features}
+                  onChange={(e) => setFeatures(e.target.value)}
+                  placeholder={`Enter features as JSON, e.g.:
+{
+  "origin": "Colombia",
+  "quality": "Premium",
+  "certification": "Organic",
+  "harvest_date": "2024-03-15"
+}`}
+                  className="flex min-h-[160px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
+                />
+                <p className="text-xs text-gray-500">
+                  Optional: Add product characteristics in JSON format
+                </p>
+              </div>
+
+              {/* Role Info Box */}
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3">
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-semibold text-blue-900">Creating as {userRole}</h3>
+                  <p className="text-sm text-blue-700 mt-1">
+                    {ROLE_CONFIG[userRole]?.createTokenGuidance || 'Create and manage your supply chain tokens.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-4 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => router.push('/tokens')}
                   className="flex-1"
                 >
                   Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white"
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      Creating...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Create Token
+                    </div>
+                  )}
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
       </div>
-    </div>
     </>
   );
 }

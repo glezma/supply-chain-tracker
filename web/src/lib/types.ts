@@ -30,6 +30,7 @@ export interface Token {
   creator: string;
   totalSupply: bigint;
   timestamp: bigint;
+  features?: string;
 }
 
 export interface Transfer {

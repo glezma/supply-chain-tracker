@@ -6,6 +6,7 @@ import { useWeb3 } from '@/contexts/Web3Context';
 import { useContract } from '@/hooks/useContract';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { TokenCard } from '@/components/TokenCard';
 
 interface TokenData {
   id: bigint;
@@ -13,6 +14,8 @@ interface TokenData {
   creator: string;
   totalSupply: bigint;
   balance: bigint;
+  timestamp: bigint;
+  features?: string;
 }
 
 export default function TokensPage() {
@@ -35,7 +38,7 @@ export default function TokensPage() {
 
   const fetchTokens = async () => {
     if (!account || !contract) return;
-    
+
     console.log('[Tokens] Starting fetch for account:', account);
     setLoading(true);
     try {
@@ -50,16 +53,18 @@ export default function TokensPage() {
         console.log('[Tokens] Token data:', token);
         const balance = await contract.getTokenBalance(id, account);
         console.log('[Tokens] Balance:', balance);
-        
+
         tokenList.push({
           id: token[0],
-          name: token[2],
-          creator: token[1],
-          totalSupply: token[3],
+          name: token[2], // Name is at index 2
+          creator: token[1], // Creator is at index 1
+          totalSupply: token[3], // Supply at 3
+          timestamp: token[4], // Timestamp at 4
+          features: token[5], // Features at 5 (Assuming standard struct order)
           balance: balance,
         });
       }
-      
+
       console.log('[Tokens] Total tokens:', tokenList.length);
       setTokens(tokenList);
     } catch (error) {
@@ -94,35 +99,13 @@ export default function TokensPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tokens.map((token) => (
-              <Card 
-                key={token.id.toString()} 
-                className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => router.push(`/tokens/${token.id}`)}
-              >
-                <CardHeader>
-                  <CardTitle>{token.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="text-gray-600">Balance:</span>
-                      <span className="ml-2 font-semibold">{token.balance.toString()}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Total Supply:</span>
-                      <span className="ml-2">{token.totalSupply.toString()}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Creator:</span>
-                      <span className="ml-2 font-mono text-xs">
-                        {token.creator.slice(0, 6)}...{token.creator.slice(-4)}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <TokenCard
+                key={token.id.toString()}
+                token={token}
+                balance={token.balance}
+              />
             ))}
           </div>
         )}
