@@ -69,7 +69,7 @@ export function useContract() {
     setLoading(true);
     setError(null);
     try {
-      const tx = await contract.transfer(tokenId, to, quantity);
+      const tx = await contract.transfer(to, tokenId, quantity);
       await tx.wait();
       return tx;
     } catch (err: any) {
@@ -135,7 +135,9 @@ export function useContract() {
   const getTransfer = async (transferId: bigint) => {
     if (!contract) throw new Error('Contract not initialized');
     try {
-      return await contract.getTransfer(transferId);
+      // Force fresh data by calling staticCall
+      const result = await contract.getTransfer.staticCall(transferId);
+      return result;
     } catch (err: any) {
       setError(err.message);
       throw err;

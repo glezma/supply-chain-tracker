@@ -50,7 +50,9 @@ export function TransferList({ transfers, onAccept, onReject, loading }: Transfe
       <TableBody>
         {transfers.map((transfer) => {
           const date = new Date(Number(transfer.timestamp) * 1000).toLocaleDateString();
-          const isRecipient = transfer.to.toLowerCase() === account?.toLowerCase();
+          const toAddress = typeof transfer.to === 'string' ? transfer.to : String(transfer.to);
+          const fromAddress = typeof transfer.from === 'string' ? transfer.from : String(transfer.from);
+          const isRecipient = toAddress.toLowerCase() === account?.toLowerCase();
           const isPending = transfer.status === TransferStatus.Pending;
 
           return (
@@ -58,10 +60,10 @@ export function TransferList({ transfers, onAccept, onReject, loading }: Transfe
               <TableCell>{transfer.id.toString()}</TableCell>
               <TableCell>{transfer.tokenId.toString()}</TableCell>
               <TableCell className="text-xs">
-                {transfer.from.slice(0, 6)}...{transfer.from.slice(-4)}
+                {fromAddress.slice(0, 6)}...{fromAddress.slice(-4)}
               </TableCell>
               <TableCell className="text-xs">
-                {transfer.to.slice(0, 6)}...{transfer.to.slice(-4)}
+                {toAddress.slice(0, 6)}...{toAddress.slice(-4)}
               </TableCell>
               <TableCell>{transfer.quantity.toString()}</TableCell>
               <TableCell>{getStatusBadge(transfer.status)}</TableCell>

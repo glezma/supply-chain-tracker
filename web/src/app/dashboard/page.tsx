@@ -20,7 +20,7 @@ export default function Dashboard() {
   const { getUserInfo, getUserTokens, getToken } = useContract();
   const { transfers, acceptTransfer, rejectTransfer } = useTransfers();
   const { isAdmin, users, fetchUsers, approveUser, rejectUser } = useAdmin();
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
   const [tokens, setTokens] = useState<Token[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,7 @@ export default function Dashboard() {
       const user = await getUserInfo(account);
       console.log('[Dashboard] User data:', user);
       // User struct: [id, userAddress, role, status]
-      setUserRole(user[2] as string as any);
+      setUserRole(user[2]);
       setUserStatus(Number(user[3]) as UserStatus);
 
       if (Number(user[3]) === UserStatus.Approved) {
@@ -105,16 +105,6 @@ export default function Dashboard() {
     );
   }
 
-  const getRoleLabel = (role: UserRole) => {
-    const labels = {
-      [UserRole.Producer]: 'Producer',
-      [UserRole.Factory]: 'Factory',
-      [UserRole.Retailer]: 'Retailer',
-      [UserRole.Consumer]: 'Consumer',
-    };
-    return labels[role];
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 space-y-6">
@@ -122,10 +112,10 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold">Dashboard</h1>
             <p className="text-gray-600">
-              {isAdmin ? 'Role: Admin' : userRole !== null ? `Role: ${getRoleLabel(userRole)}` : ''}
+              {isAdmin ? 'Role: Admin' : userRole !== null ? `Role: ${userRole}` : ''}
             </p>
           </div>
-          {!isAdmin && userRole !== UserRole.Consumer && (
+          {!isAdmin && userRole !== 'Consumer' && (
             <Button onClick={() => router.push('/tokens/create')}>
               Create Token
             </Button>

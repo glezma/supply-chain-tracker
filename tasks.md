@@ -381,7 +381,7 @@
     - Show success/error messages
     - _Requirements: 5, 11_
 
-- [ ] 18. Implement transfer management page
+- [x] 18. Implement transfer management page
   - Create `web/src/app/transfers/page.tsx`
   - Display pending incoming transfers with Accept/Reject buttons
   - Display transfer history (sent and received)

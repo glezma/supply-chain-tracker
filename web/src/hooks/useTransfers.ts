@@ -23,12 +23,12 @@ export function useTransfers() {
           const transfer = await getTransfer(id);
           return {
             id: transfer[0] as bigint,
-            tokenId: transfer[1] as bigint,
-            from: transfer[2] as string,
-            to: transfer[3] as string,
-            quantity: transfer[4] as bigint,
-            status: transfer[5] as number,
-            timestamp: transfer[6] as bigint,
+            from: transfer[1] as string,
+            to: transfer[2] as string,
+            tokenId: transfer[3] as bigint,
+            timestamp: transfer[4] as bigint,
+            quantity: transfer[5] as bigint,
+            status: transfer[6] as number,
           };
         })
       );

@@ -8,12 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Toast } from '@/components/ui/toast';
+import { useToast } from '@/hooks/useToast';
 
 export default function TransferTokenPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { account, isConnected, contract } = useWeb3();
   const { transfer, getToken } = useContract();
+  const { toast, showToast, hideToast } = useToast();
   const [tokenName, setTokenName] = useState('');
   const [balance, setBalance] = useState(BigInt(0));
   const [recipient, setRecipient] = useState('');
@@ -49,18 +52,18 @@ export default function TransferTokenPage({ params }: { params: Promise<{ id: st
     e.preventDefault();
     
     if (!recipient || !amount) {
-      alert('Please fill all fields');
+      showToast('Please fill all fields', 'error');
       return;
     }
 
     const amt = BigInt(amount);
     if (amt <= 0) {
-      alert('Amount must be greater than 0');
+      showToast('Amount must be greater than 0', 'error');
       return;
     }
 
     if (amt > balance) {
-      alert('Insufficient balance');
+      showToast('Insufficient balance', 'error');
       return;
     }
 
@@ -68,23 +71,25 @@ export default function TransferTokenPage({ params }: { params: Promise<{ id: st
     try {
       console.log('[Transfer] Transferring:', { tokenId: id, recipient, amount: amt });
       await transfer(BigInt(id), recipient, amt);
-      alert('Transfer request sent! Waiting for recipient to accept.');
-      router.push('/transfers');
+      showToast('Transfer request sent! Waiting for recipient to accept.', 'success');
+      setTimeout(() => router.push('/transfers'), 1500);
     } catch (error: any) {
       console.error('[Transfer] Error:', error);
-      alert('Transfer failed: ' + (error.reason || error.message));
+      showToast('Transfer failed: ' + (error.reason || error.message), 'error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto">
-        <Button 
-          variant="outline" 
-          onClick={() => router.push(`/tokens/${id}`)}
-          className="mb-4"
+    <>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-2xl mx-auto">
+          <Button 
+            variant="outline" 
+            onClick={() => router.push(`/tokens/${id}`)}
+            className="mb-4"
         >
           ← Back
         </Button>
@@ -140,5 +145,6 @@ export default function TransferTokenPage({ params }: { params: Promise<{ id: st
         </Card>
       </div>
     </div>
+    </>
   );
 }

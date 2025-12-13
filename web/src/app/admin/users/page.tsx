@@ -6,6 +6,8 @@ import { useWeb3 } from '@/contexts/Web3Context';
 import { useContract } from '@/hooks/useContract';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Toast } from '@/components/ui/toast';
+import { useToast } from '@/hooks/useToast';
 import { UserStatus } from '@/lib/types';
 import { CONTRACT_CONFIG } from '@/contracts/config';
 
@@ -20,6 +22,7 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const { account, isConnected } = useWeb3();
   const { changeStatusUser, getUserInfo } = useContract();
+  const { toast, showToast, hideToast } = useToast();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +39,8 @@ export default function AdminUsersPage() {
     console.log('[AdminUsers] Checking admin:', account?.toLowerCase(), 'vs', CONTRACT_CONFIG.adminAddress.toLowerCase());
     if (account?.toLowerCase() !== CONTRACT_CONFIG.adminAddress.toLowerCase()) {
       console.log('[AdminUsers] Not admin, access denied');
-      alert('Access denied: Admin only');
+      showToast('Access denied: Admin only', 'error');
+      router.push('/');
       return;
     }
 
@@ -89,13 +93,12 @@ export default function AdminUsersPage() {
       console.log('[Admin] Approving user:', userAddress);
       await changeStatusUser(userAddress, UserStatus.Approved);
       console.log('[Admin] Approval transaction confirmed, refreshing...');
-      // Small delay to ensure blockchain state is updated
       await new Promise(resolve => setTimeout(resolve, 500));
       await fetchUsers();
-      alert('User approved successfully');
+      showToast('User approved successfully', 'success');
     } catch (error: any) {
       console.error('[Admin] Error approving user:', error);
-      alert('Failed to approve user: ' + (error.reason || error.message));
+      showToast('Failed to approve user: ' + (error.reason || error.message), 'error');
     }
   };
 
@@ -104,10 +107,10 @@ export default function AdminUsersPage() {
       console.log('[Admin] Rejecting user:', userAddress);
       await changeStatusUser(userAddress, UserStatus.Rejected);
       await fetchUsers();
-      alert('User rejected');
+      showToast('User rejected', 'success');
     } catch (error: any) {
       console.error('[Admin] Error rejecting user:', error);
-      alert('Failed to reject user: ' + (error.reason || error.message));
+      showToast('Failed to reject user: ' + (error.reason || error.message), 'error');
     }
   };
 
@@ -138,8 +141,10 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
+    <>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-6xl mx-auto">
         <Card>
           <CardHeader>
             <CardTitle>User Management</CardTitle>
@@ -198,5 +203,6 @@ export default function AdminUsersPage() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

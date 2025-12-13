@@ -8,11 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Toast } from '@/components/ui/toast';
+import { useToast } from '@/hooks/useToast';
 
 export default function CreateTokenPage() {
   const router = useRouter();
   const { account, isConnected } = useWeb3();
   const { createToken, getUserInfo } = useContract();
+  const { toast, showToast, hideToast } = useToast();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,13 +43,13 @@ export default function CreateTokenPage() {
     e.preventDefault();
     
     if (!name || !quantity) {
-      alert('Please fill all fields');
+      showToast('Please fill all fields', 'error');
       return;
     }
 
     const qty = BigInt(quantity);
     if (qty <= 0) {
-      alert('Quantity must be greater than 0');
+      showToast('Quantity must be greater than 0', 'error');
       return;
     }
 
@@ -54,22 +57,24 @@ export default function CreateTokenPage() {
     try {
       console.log('[CreateToken] Creating token:', { name, quantity: qty });
       await createToken(name, qty);
-      alert('Token created successfully!');
-      router.push('/tokens');
+      showToast('Token created successfully!', 'success');
+      setTimeout(() => router.push('/tokens'), 1000);
     } catch (error: any) {
       console.error('[CreateToken] Error:', error);
-      alert('Failed to create token: ' + (error.reason || error.message));
+      showToast('Failed to create token: ' + (error.reason || error.message), 'error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Create New Token</CardTitle>
+    <>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-2xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Create New Token</CardTitle>
             <p className="text-sm text-gray-500 mt-2">Role: {userRole}</p>
           </CardHeader>
           <CardContent>
@@ -115,5 +120,6 @@ export default function CreateTokenPage() {
         </Card>
       </div>
     </div>
+    </>
   );
 }
