@@ -1,1 +1,1 @@
-testConsumerCannotTransfer
+testCreateTokenByFactory|testCreateTokenByRetailer|testTokenWithParentId|testTransferFromFactoryToRetailer|testTransferFromRetailerToConsumer

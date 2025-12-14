@@ -57,7 +57,7 @@ contract SupplyChain {
     // CONSTANTS
     // ============================================
 
-    // Role hashes pre-computed at compile time to save runtime gas costs.
+    // Role hashes pre-computed .
     bytes32 public constant PRODUCER_ROLE = keccak256("Producer");
     bytes32 public constant FACTORY_ROLE = keccak256("Factory");
     bytes32 public constant RETAILER_ROLE = keccak256("Retailer");

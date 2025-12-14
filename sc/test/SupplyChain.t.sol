@@ -164,30 +164,51 @@ contract SupplyChainTest is Test {
 
     /// @notice Test 10: Verifies a Factory can mint new tokens
     function testCreateTokenByFactory() public {
+        _approveUser(producer, "Producer");
         _approveUser(factory, "Factory");
+        
+        // Producer creates raw material first
+        vm.prank(producer);
+        supplyChain.createToken("Raw Material", 100, "{}", 0);
+        
+        // Factory creates processed product with parent
         vm.prank(factory);
-        supplyChain.createToken("Processed Product", 50, "{}", 0);
-        assertEq(supplyChain.getTokenBalance(1, factory), 50);
+        supplyChain.createToken("Processed Product", 50, "{}", 1);
+        assertEq(supplyChain.getTokenBalance(2, factory), 50);
     }
 
     /// @notice Test 11: Verifies a Retailer can mint new tokens (e.g. repacking)
     function testCreateTokenByRetailer() public {
+        _approveUser(producer, "Producer");
+        _approveUser(factory, "Factory");
         _approveUser(retailer, "Retailer");
+        
+        // Producer creates raw material
+        vm.prank(producer);
+        supplyChain.createToken("Raw Material", 100, "{}", 0);
+        
+        // Factory creates processed product
+        vm.prank(factory);
+        supplyChain.createToken("Processed Product", 50, "{}", 1);
+        
+        // Retailer creates final product with parent
         vm.prank(retailer);
-        supplyChain.createToken("Retail Batch", 10, "{}", 0);
-        assertEq(supplyChain.getTokenBalance(1, retailer), 10);
+        supplyChain.createToken("Retail Batch", 10, "{}", 2);
+        assertEq(supplyChain.getTokenBalance(3, retailer), 10);
     }
 
     /// @notice Test 12: Verifies parentId linking logic for traceability
     function testTokenWithParentId() public {
         _approveUser(producer, "Producer");
+        _approveUser(factory, "Factory");
+        
         vm.prank(producer);
         supplyChain.createToken("Parent", 100, "{}", 0);
 
-        vm.prank(producer);
+        vm.prank(factory);
         supplyChain.createToken("Child", 100, "{}", 1);
 
-        (, , , , , uint256 parentId, ) = supplyChain.getToken(2);
+        (, , , , , , uint256 parentId, ) = supplyChain.getToken(2);
         assertEq(parentId, 1);
     }
 
@@ -198,7 +219,7 @@ contract SupplyChainTest is Test {
         vm.prank(producer);
         supplyChain.createToken("Item", 1, features, 0);
 
-        (, , , , string memory storedFeatures, , ) = supplyChain.getToken(1);
+        (, , , , string memory storedFeatures, , , ) = supplyChain.getToken(1);
         assertEq(storedFeatures, features);
     }
 
@@ -218,7 +239,7 @@ contract SupplyChainTest is Test {
         vm.prank(producer);
         supplyChain.createToken("Item", 1, "{}", 0);
 
-        (uint256 id, address creator, string memory name, , , , ) = supplyChain
+        (uint256 id, address creator, string memory name, , , , , ) = supplyChain
             .getToken(1);
         assertEq(id, 1);
         assertEq(creator, producer);
@@ -261,14 +282,20 @@ contract SupplyChainTest is Test {
 
     /// @notice Test 18: Verifies valid transfer from Factory to Retailer
     function testTransferFromFactoryToRetailer() public {
+        _approveUser(producer, "Producer");
         _approveUser(factory, "Factory");
         _approveUser(retailer, "Retailer");
 
+        // Producer creates raw material
+        vm.prank(producer);
+        supplyChain.createToken("Raw", 100, "{}", 0);
+
+        // Factory creates processed product
         vm.prank(factory);
-        supplyChain.createToken("T", 100, "{}", 0);
+        supplyChain.createToken("Processed", 100, "{}", 1);
 
         vm.prank(factory);
-        supplyChain.transfer(retailer, 1, 50);
+        supplyChain.transfer(retailer, 2, 50);
 
         SupplyChain.Transfer memory txfer = supplyChain.getTransfer(1);
         assertEq(txfer.to, retailer);
@@ -276,14 +303,25 @@ contract SupplyChainTest is Test {
 
     /// @notice Test 19: Verifies valid transfer from Retailer to Consumer
     function testTransferFromRetailerToConsumer() public {
+        _approveUser(producer, "Producer");
+        _approveUser(factory, "Factory");
         _approveUser(retailer, "Retailer");
         _approveUser(consumer, "Consumer");
 
+        // Producer creates raw material
+        vm.prank(producer);
+        supplyChain.createToken("Raw", 100, "{}", 0);
+
+        // Factory creates processed product
+        vm.prank(factory);
+        supplyChain.createToken("Processed", 100, "{}", 1);
+
+        // Retailer creates final product
         vm.prank(retailer);
-        supplyChain.createToken("T", 100, "{}", 0);
+        supplyChain.createToken("Final", 100, "{}", 2);
 
         vm.prank(retailer);
-        supplyChain.transfer(consumer, 1, 50);
+        supplyChain.transfer(consumer, 3, 50);
 
         SupplyChain.Transfer memory txfer = supplyChain.getTransfer(1);
         assertEq(txfer.to, consumer);
@@ -679,7 +717,7 @@ contract SupplyChainTest is Test {
         supplyChain.createToken("Raw", 100, "", 0);
 
         // Check raw token traceability
-        (, , , , , uint256 type1Parent, ) = supplyChain.getToken(1);
+        (, , , , , , uint256 type1Parent, ) = supplyChain.getToken(1);
         assertEq(type1Parent, 0); // Root
 
         vm.prank(producer);
@@ -690,7 +728,7 @@ contract SupplyChainTest is Test {
         vm.prank(factory);
         supplyChain.createToken("Processed", 100, "", 1);
 
-        (, , , , , uint256 type2Parent, ) = supplyChain.getToken(2);
+        (, , , , , , uint256 type2Parent, ) = supplyChain.getToken(2);
         assertEq(type2Parent, 1); // Linked to Raw
     }
 }
