@@ -124,6 +124,9 @@ export function useContract() {
     try {
       return await contract.getUserInfo(userAddress);
     } catch (err: any) {
+      if (err.message?.includes('User does not exist')) {
+        return null;
+      }
       setError(err.message);
       throw err;
     }

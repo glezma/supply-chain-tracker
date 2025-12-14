@@ -29,7 +29,9 @@ export function Header({ userRole: propUserRole }: HeaderProps) {
 
       try {
         const user = await getUserInfo(account);
-        setFetchedRole(user[2]); // role is at index 2
+        if (user) {
+          setFetchedRole(user[2]); // role is at index 2
+        }
       } catch (error) {
         console.error('Failed to fetch user role for header:', error);
       }

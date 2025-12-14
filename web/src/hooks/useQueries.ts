@@ -20,16 +20,23 @@ export function useUserInfo(address?: string) {
         queryKey: QUERY_KEYS.userInfo(address || ''),
         queryFn: async () => {
             if (!contract || !address) return null;
-            // getUserInfo returns struct User { id, userAddress, role, status }
-            const user = await contract.getUserInfo(address);
-            return {
-                id: user.id,
-                userAddress: user.userAddress,
-                role: user.role, // Contract returns string
-                status: Number(user.status) // Contract returns enum (uint8)
-            };
+            try {
+                const user = await contract.getUserInfo(address);
+                return {
+                    id: user.id,
+                    userAddress: user.userAddress,
+                    role: user.role,
+                    status: Number(user.status)
+                };
+            } catch (error: any) {
+                if (error.message?.includes('User does not exist')) {
+                    return null;
+                }
+                throw error;
+            }
         },
-        enabled: !!contract && !!address
+        enabled: !!contract && !!address,
+        retry: false
     });
 }
 
