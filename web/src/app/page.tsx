@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { useContract } from '@/hooks/useContract';
+import { useUserInfo } from '@/hooks/useQueries';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -14,51 +15,28 @@ import { ROLE_CONFIG } from '@/lib/roleConfig';
 export default function Home() {
   const router = useRouter();
   const { account, isConnected, connectWallet } = useWeb3();
-  const { requestUserRole, getUserInfo } = useContract();
+  const { requestUserRole } = useContract();
   const [selectedRole, setSelectedRole] = useState<string>('Producer');
-  const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
-  const [userRole, setUserRole] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isConnected && account) {
-      fetchUserStatus();
-    }
-  }, [isConnected, account]);
+  // React Query Hook
+  const { data: userData, isLoading: isUserLoading, refetch: refetchUser } = useUserInfo(account || undefined);
 
-  const fetchUserStatus = async () => {
-    if (!account) return;
+  const userStatus = userData?.status ?? null;
+  const userRole = userData?.role ?? '';
 
-    // Check if admin first
-    if (account.toLowerCase() === '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266') {
-      console.log('[Page] Admin account detected, redirecting to dashboard');
-      router.push('/dashboard');
-      return;
-    }
-
-    try {
-      console.log('[Page] Fetching user status for:', account);
-      const user = await getUserInfo(account);
-      console.log('[Page] Raw user data:', user);
-
-      // User struct: [id, userAddress, role, status]
-      const status = Number(user[3]);
-      console.log('[Page] Status as number:', status);
-      setUserRole(user[2]); // Store role
-      setUserStatus(status as UserStatus);
-    } catch (error: any) {
-      console.log('[Page] User not registered yet:', error.message);
-      setUserStatus(null);
-    }
-  };
+  // Redirect admin
+  if (account && account.toLowerCase() === '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266') {
+    router.push('/dashboard');
+  }
 
   const handleRegister = async () => {
     setLoading(true);
     try {
       console.log('[Page] Registering with role:', selectedRole);
       await requestUserRole(selectedRole);
-      console.log('[Page] Registration successful, fetching status...');
-      await fetchUserStatus();
+      console.log('[Page] Registration successful, refetching status...');
+      await refetchUser();
     } catch (error: any) {
       console.error('[Page] Registration failed:', error);
       alert('Registration failed: ' + (error.reason || error.message));
@@ -101,6 +79,14 @@ export default function Home() {
             </p>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (isUserLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
