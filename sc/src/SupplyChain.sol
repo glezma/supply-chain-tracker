@@ -40,11 +40,17 @@ contract SupplyChain {
         Canceled // Account deactivated
     }
 
-    /// @notice Status of a token transfer request
     enum TransferStatus {
         Pending, // Transfer requested by sender, awaiting acceptance
         Accepted, // Accepted by recipient, balances updated
         Rejected // Rejected by recipient, no balance change
+    }
+
+    /// @notice Type of token based on supply chain stage
+    enum TokenType {
+        RawMaterial, // Created by Producer
+        ProcessedProduct, // Created by Factory
+        FinalProduct // Created by Retailer
     }
 
     // ============================================
@@ -69,6 +75,7 @@ contract SupplyChain {
         string name; // Human-readable name (e.g., "Arabica Coffee")
         uint256 totalSupply; // Total units minted
         string features; // JSON string describing attributes (Origin, Quality, etc.)
+        TokenType tokenType; // Classification of the token
         uint256 parentId; // (Optional) Lineage tracking: trace back to raw materials
         uint256 dateCreated; // Timestamp of creation
         mapping(address => uint256) balance; // Ledger of who owns how many units
@@ -239,11 +246,34 @@ contract SupplyChain {
             "User not approved"
         );
 
-        // Validation
+        // Validation & Type Assignment
         require(bytes(name).length > 0, "Name cannot be empty");
         require(totalSupply > 0, "Total supply must be greater than 0");
-        if (parentId > 0) {
+
+        TokenType tokenType;
+        bytes32 roleHash = keccak256(bytes(users[userId].role));
+
+        if (roleHash == PRODUCER_ROLE) {
+            tokenType = TokenType.RawMaterial;
+            require(parentId == 0, "Producers cannot have parent token");
+        } else if (roleHash == FACTORY_ROLE) {
+            tokenType = TokenType.ProcessedProduct;
+            require(parentId > 0, "Factory must specify parent token");
             require(parentId < nextTokenId, "Parent token does not exist");
+            require(
+                tokens[parentId].tokenType == TokenType.RawMaterial,
+                "Factory input must be RawMaterial"
+            );
+        } else if (roleHash == RETAILER_ROLE) {
+            tokenType = TokenType.FinalProduct;
+            require(parentId > 0, "Retailer must specify parent token");
+            require(parentId < nextTokenId, "Parent token does not exist");
+            require(
+                tokens[parentId].tokenType == TokenType.ProcessedProduct,
+                "Retailer input must be ProcessedProduct"
+            );
+        } else {
+            revert("Consumer cannot create tokens");
         }
 
         // Create Token Record
@@ -253,6 +283,7 @@ contract SupplyChain {
         newToken.name = name;
         newToken.totalSupply = totalSupply;
         newToken.features = features;
+        newToken.tokenType = tokenType;
         newToken.parentId = parentId;
         newToken.dateCreated = block.timestamp;
 
@@ -278,6 +309,7 @@ contract SupplyChain {
             string memory name,
             uint256 totalSupply,
             string memory features,
+            TokenType tokenType,
             uint256 parentId,
             uint256 dateCreated
         )
@@ -290,6 +322,7 @@ contract SupplyChain {
             token.name,
             token.totalSupply,
             token.features,
+            token.tokenType,
             token.parentId,
             token.dateCreated
         );

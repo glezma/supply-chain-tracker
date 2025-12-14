@@ -7,21 +7,25 @@ import { useContract } from '@/hooks/useContract';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Toast } from '@/components/ui/toast';
 import { useToast } from '@/hooks/useToast';
 import { ROLE_CONFIG } from '@/lib/roleConfig';
+import { TokenType } from '@/lib/types';
 
 export default function CreateTokenPage() {
   const router = useRouter();
   const { account, isConnected } = useWeb3();
-  const { createToken, getUserInfo } = useContract();
+  const { createToken, getUserInfo, getUserTokens, getToken } = useContract();
   const { toast, showToast, hideToast } = useToast();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [features, setFeatures] = useState('');
   const [loading, setLoading] = useState(false);
   const [userRole, setUserRole] = useState('');
+  const [parentId, setParentId] = useState('');
+  const [availableTokens, setAvailableTokens] = useState<{ id: bigint; name: string }[]>([]);
 
   useEffect(() => {
     if (!isConnected || !account) {
@@ -31,11 +35,33 @@ export default function CreateTokenPage() {
     fetchUserRole();
   }, [isConnected, account]);
 
+
   const fetchUserRole = async () => {
     if (!account) return;
     try {
       const user = await getUserInfo(account);
       setUserRole(user[2]);
+
+      // Fetch tokens for parent selection ONLY if Factory or Retailer
+      if (user[2] === 'Factory' || user[2] === 'Retailer') {
+        const tokenIds = await getUserTokens(account);
+        const tokens = await Promise.all(
+          tokenIds.map(async (id: bigint) => {
+            const t = await getToken(id);
+            // t mapping: 0:id, 1:creator, 2:name, 3:supply, 4:features, 5:type, 6:parent, 7:date
+            return { id: t[0], name: t[2], type: Number(t[5]) };
+          })
+        );
+
+        // Filter valid parents
+        const validParents = tokens.filter(t => {
+          if (user[2] === 'Factory') return t.type === TokenType.RawMaterial;
+          if (user[2] === 'Retailer') return t.type === TokenType.ProcessedProduct;
+          return false;
+        });
+
+        setAvailableTokens(validParents);
+      }
     } catch (error) {
       console.error('[CreateToken] Error fetching user role:', error);
     }
@@ -67,8 +93,9 @@ export default function CreateTokenPage() {
 
     setLoading(true);
     try {
-      console.log('[CreateToken] Creating token:', { name, quantity: qty, features });
-      await createToken(name, qty, features);
+      const pId = parentId ? BigInt(parentId) : BigInt(0);
+      console.log('[CreateToken] Creating token:', { name, quantity: qty, features, parentId: pId });
+      await createToken(name, qty, features, pId);
       showToast('Token created successfully!', 'success');
       setTimeout(() => router.push('/tokens'), 1000);
     } catch (error: any) {
@@ -127,6 +154,32 @@ export default function CreateTokenPage() {
                   className="w-full"
                 />
               </div>
+
+              {/* Parent Token Selection - Only for Factory and Retailer */}
+              {(userRole === 'Factory' || userRole === 'Retailer') && (
+                <div className="space-y-2">
+                  <Label htmlFor="parent" className="text-sm font-medium text-gray-700">
+                    Parent Token <span className="text-gray-500 font-normal">(Optional, for traceability)</span>
+                  </Label>
+                  <Select
+                    id="parent"
+                    value={parentId}
+                    onChange={(e) => setParentId(e.target.value)}
+                  >
+                    <option value="">None (No parent token)</option>
+                    {availableTokens.map((token) => (
+                      <option key={token.id.toString()} value={token.id.toString()}>
+                        #{token.id.toString()} - {token.name}
+                      </option>
+                    ))}
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    {userRole === 'Factory'
+                      ? "Select the Raw Material used to produce this product."
+                      : "Select the Factory Product being distributed."}
+                  </p>
+                </div>
+              )}
 
               {/* Features JSON */}
               <div className="space-y-2">

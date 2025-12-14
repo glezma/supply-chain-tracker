@@ -28,7 +28,7 @@ export function useTransfers() {
             tokenId: transfer[3] as bigint,
             timestamp: transfer[4] as bigint,
             quantity: transfer[5] as bigint,
-            status: transfer[6] as number,
+            status: Number(transfer[6]),
           };
         })
       );

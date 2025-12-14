@@ -7,6 +7,7 @@ import { useContract } from '@/hooks/useContract';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Token, Transfer, TransferStatus } from '@/lib/types';
+import { formatDate } from '@/lib/formatters';
 
 interface TokenDetails extends Token {
   balance: bigint;
@@ -51,8 +52,10 @@ export default function TokenDetailsPage({ params }: { params: Promise<{ id: str
         creator: tokenData[1],
         name: tokenData[2],
         totalSupply: tokenData[3],
-        timestamp: tokenData[6], // dateCreated is at 6
+        timestamp: tokenData[7], // dateCreated is at 7 (Shifted)
         features: tokenData[4],  // features at 4
+        tokenType: Number(tokenData[5]), // tokenType at 5
+        parentId: tokenData[6],  // parentId at 6
         balance: balance,
       });
 
@@ -79,7 +82,23 @@ export default function TokenDetailsPage({ params }: { params: Promise<{ id: str
   if (!token) return null;
 
   const isCreator = account && token.creator.toLowerCase() === account.toLowerCase();
-  const date = new Date(Number(token.timestamp) * 1000).toLocaleString();
+  const date = formatDate(token.timestamp);
+
+  // Get token type display info
+  const getTokenTypeInfo = (type: number) => {
+    switch (type) {
+      case 0:
+        return { label: 'Raw Material', color: 'bg-amber-100 text-amber-700 border-amber-200' };
+      case 1:
+        return { label: 'Processed Product', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+      case 2:
+        return { label: 'Final Product', color: 'bg-purple-100 text-purple-700 border-purple-200' };
+      default:
+        return { label: 'Unknown', color: 'bg-gray-100 text-gray-700 border-gray-200' };
+    }
+  };
+
+  const tokenTypeInfo = getTokenTypeInfo(token.tokenType);
 
   // Format features
   let featuresDisplay = token.features;
@@ -126,6 +145,27 @@ export default function TokenDetailsPage({ params }: { params: Promise<{ id: str
                     <p className="text-xs text-gray-500 font-medium mt-1">Total Supply</p>
                   </div>
                 </div>
+
+                {/* Token Type */}
+                <div className="pt-2">
+                  <p className="text-xs text-gray-500 mb-2">Token Type</p>
+                  <span className={`inline-block px-3 py-1 rounded text-sm font-medium border ${tokenTypeInfo.color}`}>
+                    {tokenTypeInfo.label}
+                  </span>
+                </div>
+
+                {/* Parent Token */}
+                {token.parentId && Number(token.parentId) > 0 ? (
+                  <div className="pt-2">
+                    <p className="text-xs text-gray-500 mb-2">Parent Token</p>
+                    <button
+                      onClick={() => router.push(`/tokens/${token.parentId}`)}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                    >
+                      Token #{token.parentId.toString()}
+                    </button>
+                  </div>
+                ) : null}
 
                 {/* Creator */}
                 <div className="space-y-3 pt-2">
@@ -216,7 +256,7 @@ export default function TokenDetailsPage({ params }: { params: Promise<{ id: str
                                   Number(tx.status) === TransferStatus.Rejected ? 'Rejected' : 'Pending'}
                               </span>
                               <span className="text-sm text-gray-500 ml-3">
-                                {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
+                                {formatDate(tx.timestamp)}
                               </span>
                             </div>
                             <div className="text-sm font-bold text-gray-900">

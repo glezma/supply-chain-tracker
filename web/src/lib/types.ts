@@ -18,6 +18,12 @@ export enum TransferStatus {
   Rejected = 2,
 }
 
+export enum TokenType {
+  RawMaterial = 0,
+  ProcessedProduct = 1,
+  FinalProduct = 2,
+}
+
 export interface User {
   userAddress: string;
   role: UserRole;
@@ -31,6 +37,8 @@ export interface Token {
   totalSupply: bigint;
   timestamp: bigint;
   features?: string;
+  tokenType: TokenType;
+  parentId?: bigint;
 }
 
 export interface Transfer {

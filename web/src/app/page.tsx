@@ -26,9 +26,11 @@ export default function Home() {
   const userRole = userData?.role ?? '';
 
   // Redirect admin
-  if (account && account.toLowerCase() === '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266') {
-    router.push('/dashboard');
-  }
+  useEffect(() => {
+    if (account && account.toLowerCase() === '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266') {
+      router.push('/dashboard');
+    }
+  }, [account, router]);
 
   const handleRegister = async () => {
     setLoading(true);

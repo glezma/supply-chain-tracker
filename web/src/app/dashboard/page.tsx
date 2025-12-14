@@ -61,11 +61,14 @@ export default function Dashboard() {
             const token = await getToken(id);
             return {
               id: token[0],
-              name: token[2], // Corrected index for name
-              creator: token[1], // Corrected index for creator
+              creator: token[1],
+              name: token[2],
               totalSupply: token[3],
-              timestamp: token[4],
-              features: token[5],
+              // feature is token[4], tokenType is token[5], parentId is token[6], dateCreated is token[7]
+              features: token[4],
+              tokenType: Number(token[5]),
+              parentId: token[6],
+              timestamp: token[7],
             };
           })
         );
@@ -136,32 +139,34 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* My Tokens */}
-          <Card
-            className="cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-none shadow-sm rounded-xl"
-            onClick={() => router.push('/tokens')}
-          >
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
+          {/* My Tokens - Hidden for Admin */}
+          {!isAdmin && (
+            <Card
+              className="cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-none shadow-sm rounded-xl"
+              onClick={() => router.push('/tokens')}
+            >
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <div className="bg-blue-50 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full">
+                    Active
+                  </div>
                 </div>
-                <div className="bg-blue-50 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full">
-                  Active
-                </div>
-              </div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">My Tokens</h3>
-              <p className="text-3xl font-bold text-gray-900">{tokens.length}</p>
-              <p className="text-xs text-blue-600 mt-2 font-medium flex items-center">
-                View details →
-              </p>
-            </CardContent>
-          </Card>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">My Tokens</h3>
+                <p className="text-3xl font-bold text-gray-900">{tokens.length}</p>
+                <p className="text-xs text-blue-600 mt-2 font-medium flex items-center">
+                  View details →
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Create Token */}
-          {!isAdmin && userRole !== 'Consumer' ? (
+          {/* Create Token - Hidden for Admin & Consumer */}
+          {!isAdmin && userRole !== 'Consumer' && (
             <Card
               className="cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-none shadow-sm rounded-xl"
               onClick={() => router.push('/tokens/create')}
@@ -181,39 +186,58 @@ export default function Dashboard() {
                 </p>
               </CardContent>
             </Card>
-          ) : (
-            // Placeholder for layout consistency if needed, or null. 
-            // Using simple visual placeholder if hidden to keep grid nice? No, React handles grid nicely.
-            // Just empty wrapper or null is fine, but I'll stick to null in logic above if completely hidden.
-            // Actually, let's keep the logic branch structure but just render null if condition false.
-            null
           )}
 
-          {/* Transfers */}
-          <Card
-            className="cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-none shadow-sm rounded-xl"
-            onClick={() => router.push('/transfers')}
-          >
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-2 bg-purple-50 rounded-lg">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                </div>
-                {pendingTransfers > 0 && (
-                  <div className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full">
-                    {pendingTransfers} New
+          {/* Transfers - Hidden for Admin */}
+          {!isAdmin && (
+            <Card
+              className="cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-none shadow-sm rounded-xl"
+              onClick={() => router.push('/transfers')}
+            >
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
                   </div>
-                )}
-              </div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Transfers</h3>
-              <p className="text-3xl font-bold text-gray-900">{pendingTransfers}</p>
-              <p className="text-xs text-purple-600 mt-2 font-medium flex items-center">
-                Review pending →
-              </p>
-            </CardContent>
-          </Card>
+                  {pendingTransfers > 0 && (
+                    <div className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full">
+                      {pendingTransfers} New
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">Total Transfers</h3>
+                <p className="text-3xl font-bold text-gray-900">{transfers.length}</p>
+                <p className="text-xs text-purple-600 mt-2 font-medium flex items-center">
+                  Review pending →
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin: Manage Users Card */}
+          {isAdmin && (
+            <Card
+              className="cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border-none shadow-sm rounded-xl"
+              onClick={() => router.push('/admin/users')}
+            >
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-2 bg-gray-900 rounded-lg">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">Admin</h3>
+                <p className="text-3xl font-bold text-gray-900">Users</p>
+                <p className="text-xs text-gray-600 mt-2 font-medium flex items-center">
+                  Manage Access →
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Profile */}
           <Card

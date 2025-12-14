@@ -5,6 +5,8 @@ import { Token } from '@/lib/types';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { formatDate } from '@/lib/formatters';
+import { TokenType } from '@/lib/types';
 
 interface TokenCardProps {
   token: Token;
@@ -14,7 +16,7 @@ interface TokenCardProps {
 export function TokenCard({ token, balance }: TokenCardProps) {
   const router = useRouter();
   const { account } = useWeb3();
-  const date = new Date(Number(token.timestamp) * 1000).toLocaleDateString();
+  const date = formatDate(token.timestamp);
 
   const isCreator = account && token.creator.toLowerCase() === account.toLowerCase();
   const displayAddress = `${token.creator.slice(0, 6)}...${token.creator.slice(-4)}`;
@@ -34,14 +36,35 @@ export function TokenCard({ token, balance }: TokenCardProps) {
     // Not JSON, use as is
   }
 
+  // Get token type display info
+  const getTokenTypeInfo = (type: TokenType) => {
+    switch (type) {
+      case TokenType.RawMaterial:
+        return { label: 'Raw Material', color: 'bg-amber-100 text-amber-700 border-amber-200' };
+      case TokenType.ProcessedProduct:
+        return { label: 'Processed Product', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+      case TokenType.FinalProduct:
+        return { label: 'Final Product', color: 'bg-purple-100 text-purple-700 border-purple-200' };
+      default:
+        return { label: 'Unknown', color: 'bg-gray-100 text-gray-700 border-gray-200' };
+    }
+  };
+
+  const tokenTypeInfo = getTokenTypeInfo(token.tokenType);
+
   return (
     <Card className="hover:shadow-lg transition-shadow bg-white rounded-xl overflow-hidden border border-gray-100">
       <CardContent className="p-6 space-y-6">
         {/* Header Section */}
         <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">{token.name}</h3>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-xl font-bold text-gray-900">{token.name}</h3>
+            </div>
             <p className="text-sm text-gray-500">Token #{token.id.toString()}</p>
+            <span className={`inline-block mt-2 px-2 py-1 rounded text-xs font-medium border ${tokenTypeInfo.color}`}>
+              {tokenTypeInfo.label}
+            </span>
           </div>
           {balance !== undefined && (
             <div className="text-right">

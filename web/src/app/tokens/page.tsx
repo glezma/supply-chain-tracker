@@ -15,6 +15,7 @@ interface TokenData {
   totalSupply: bigint;
   balance: bigint;
   timestamp: bigint;
+  tokenType: number;
   features?: string;
 }
 
@@ -59,8 +60,9 @@ export default function TokensPage() {
           name: token[2], // Name is at index 2
           creator: token[1], // Creator is at index 1
           totalSupply: token[3], // Supply at 3
-          timestamp: token[4], // Timestamp at 4
-          features: token[5], // Features at 5 (Assuming standard struct order)
+          tokenType: Number(token[5]), // New Type at 5
+          timestamp: token[7], // Timestamp shifted to 7
+          features: token[4], // Features at 4 (unchanged)
           balance: balance,
         });
       }
