@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "@/contexts/Web3Context";
 import { Header } from "@/components/Header";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { NetworkGuard } from "@/components/NetworkGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +32,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Web3Provider>
-          <Header />
-          {children}
+          <ErrorBoundary>
+            <NetworkGuard>
+              <Header />
+              {children}
+            </NetworkGuard>
+          </ErrorBoundary>
         </Web3Provider>
       </body>
     </html>

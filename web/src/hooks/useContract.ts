@@ -2,6 +2,7 @@
 
 import { useWeb3 } from '@/contexts/Web3Context';
 import { useState } from 'react';
+import { parseContractError } from '@/lib/errorParser';
 
 export function useContract() {
   const { contract, account } = useWeb3();
@@ -21,7 +22,8 @@ export function useContract() {
       return tx;
     } catch (err: any) {
       console.error('[Contract] Error:', err);
-      setError(err.message);
+      const parsed = parseContractError(err);
+      setError(`${parsed.title} ${parsed.description}`);
       throw err;
     } finally {
       setLoading(false);
@@ -37,7 +39,8 @@ export function useContract() {
       await tx.wait();
       return tx;
     } catch (err: any) {
-      setError(err.message);
+      const parsed = parseContractError(err);
+      setError(`${parsed.title} ${parsed.description}`);
       throw err;
     } finally {
       setLoading(false);
@@ -57,7 +60,8 @@ export function useContract() {
       return tx;
     } catch (err: any) {
       console.error('[Contract] Error:', err);
-      setError(err.message);
+      const parsed = parseContractError(err);
+      setError(`${parsed.title} ${parsed.description}`);
       throw err;
     } finally {
       setLoading(false);
@@ -73,7 +77,8 @@ export function useContract() {
       await tx.wait();
       return tx;
     } catch (err: any) {
-      setError(err.message);
+      const parsed = parseContractError(err);
+      setError(`${parsed.title} ${parsed.description}`);
       throw err;
     } finally {
       setLoading(false);
@@ -89,7 +94,8 @@ export function useContract() {
       await tx.wait();
       return tx;
     } catch (err: any) {
-      setError(err.message);
+      const parsed = parseContractError(err);
+      setError(`${parsed.title} ${parsed.description}`);
       throw err;
     } finally {
       setLoading(false);
@@ -105,7 +111,8 @@ export function useContract() {
       await tx.wait();
       return tx;
     } catch (err: any) {
-      setError(err.message);
+      const parsed = parseContractError(err);
+      setError(`${parsed.title} ${parsed.description}`);
       throw err;
     } finally {
       setLoading(false);
